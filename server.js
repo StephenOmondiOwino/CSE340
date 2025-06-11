@@ -1,89 +1,100 @@
-/* ******************************************
+/******************************************
  * This server.js file is the primary file of the 
- * application. It is used to control the project.
- *******************************************/
+ * application. It controls the entire CSE 340 project.
+ ******************************************/
+
 /* ***********************
- /* ***********************
-* Require Statements
-*************************/
+ * Require Statements
+ *************************/
 const express = require("express")
 const session = require("express-session")
-
-const pool = require('./database/')
+const pgSession = require("connect-pg-simple")(session)
 const expressLayouts = require("express-ejs-layouts")
-const env = require("dotenv").config()
-const app = express()
-const static = require("./routes/static")
+const flash = require("connect-flash")
+const messages = require("express-messages")
+const dotenv = require("dotenv")
+const path = require("path")
 
+// Load environment variables
+dotenv.config()
+
+// Database pool
+const pool = require("./database/")
+
+// Route modules
+const static = require("./routes/static")
 const inventoryRoute = require("./routes/inventoryRoute")
 
-/*View Engine and Templates*/
+// Utilities (used in error handler)
+const utilities = require("./utilities/")
 
-/*View Engine and Templates*/
+// App init
+const app = express()
 
 /* ***********************
- * Middleware
- * ************************/
- app.use(session({
-  store: new (require('connect-pg-simple')(session))({
-    createTableIfMissing: true,
-    pool,
-  }),
-  secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
-  name: 'sessionId',
-}))
+ * Session Middleware
+ *************************/
+app.use(
+  session({
+    store: new pgSession({
+      pool,
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    name: "sessionId",
+    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }, // 1 week
+  })
+)
+
+/* ***********************
+ * View Engine and Layouts
+ *************************/
 app.set("view engine", "ejs")
 app.use(expressLayouts)
-app.set("layout", "./layouts/layout") // not at views root
-
-
-/* ***********************
- * Routes
- *************************/
-app.use(static)
+app.set("layout", "./layouts/layout")
 
 /* ***********************
- * Local Server Information
- * Values from .env (environment) file
+ * Express Flash Messages
  *************************/
-const port = process.env.PORT
-const host = process.env.HOST
-
-/* ***********************
- * Log statement to confirm server operation
- *************************/
-app.listen(port, () => {
-  console.log(`app listening on ${host}:${port}`)
+app.use(flash())
+app.use(function (req, res, next) {
+  res.locals.messages = messages(req, res)
+  next()
 })
-const baseController = require("./controllers/baseController")
-// Inventory routes
+
+/* ***********************
+ * Static and Route Middleware
+ *************************/
+app.use(express.static(path.join(__dirname, "public")))
+app.use(static)
 app.use("/inv", inventoryRoute)
 
 /* ***********************
-* Express Error Handler
-* Place after all other middleware
-*************************/
+ * Error Handlers
+ *************************/
 app.use(async (err, req, res, next) => {
   let nav = await utilities.getNav()
-  console.error(`Error at: "${req.originalUrl}": ${err.message}`)
-  res.render("errors/error", {
-    title: err.status || 'Server Error',
+  console.error(`Error at "${req.originalUrl}": ${err.message}`)
+  res.status(err.status || 500).render("errors/error", {
+    title: err.status || "Server Error",
     message: err.message,
-    nav
+    nav,
   })
 })
 
-// File Not Found Route - must be last route in list
+// 404 Handler
 app.use(async (req, res, next) => {
-  next({status: 404, message: 'Sorry, we appear to have lost that page.'})
+  next({ status: 404, message: "Sorry, we appear to have lost that page." })
 })
 
+/* ***********************
+ * Server Init
+ *************************/
+const PORT = process.env.PORT || 3000
+const HOST = process.env.HOST || "localhost"
 
-// Express Messages Middleware
-app.use(require('connect-flash')())
-app.use(function(req, res, next){
-  res.locals.messages = require('express-messages')(req, res)
-  next()
+app.listen(PORT, () => {
+  console.log(`App listening on ${HOST}:${PORT}`)
 })
