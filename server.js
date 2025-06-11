@@ -3,14 +3,21 @@
  * application. It is used to control the project.
  *******************************************/
 /* ***********************
- * Require Statements
- *************************/
+ /* ***********************
+* Require Statements
+*************************/
+const express = require("express")
+const session = require("express-session")
+
 const pool = require('./database/')
-const express = require("express-session")
 const expressLayouts = require("express-ejs-layouts")
 const env = require("dotenv").config()
 const app = express()
 const static = require("./routes/static")
+
+const inventoryRoute = require("./routes/inventoryRoute")
+
+/*View Engine and Templates*/
 
 /*View Engine and Templates*/
 
