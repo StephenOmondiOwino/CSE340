@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+
+<main id="content" class="container">
+  <% if (title) { %>
+    <h1><%= title %></h1>
+  <% } %>
+
+  <!-- detail HTML produced server-side -->
+  <section id="vehicle-detail">
+    <%- detail %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

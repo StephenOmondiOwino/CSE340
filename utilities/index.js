@@ -23,21 +23,16 @@ Util.getNav = async function (req, res, next) {
   list += "</ul>"
   return list
 }
+
 /* ****************************************
  * Middleware For Handling Errors
- * Wrap other function in this for 
- * General Error Handling
  **************************************** */
 Util.handleErrors = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next)
 
-
-module.exports = Util
-
-
 /* **************************************
-* Build the classification view HTML
-* ************************************ */
+ * Build the classification view HTML
+ * ************************************ */
 Util.buildClassificationGrid = async function(data){
   let grid
   if(data.length > 0){
@@ -63,7 +58,28 @@ Util.buildClassificationGrid = async function(data){
     })
     grid += '</ul>'
   } else { 
-    grid += '<p class="notice">Sorry, no matching vehicles could be found.</p>'
+    grid = '<p class="notice">Sorry, no matching vehicles could be found.</p>'
   }
   return grid
 }
+
+/* **************************************
+ * Build the vehicle detail HTML
+ * ************************************ */
+Util.buildVehicleDetail = async function(vehicle) {
+  let detail = ""
+  if (vehicle) {
+    detail += '<section class="vehicle-detail">'
+    detail += '<img src="' + vehicle.inv_image + '" alt="Image of ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' on CSE Motors" />'
+    detail += '<h2>' + vehicle.inv_year + ' ' + vehicle.inv_make + ' ' + vehicle.inv_model + '</h2>'
+    detail += '<p><strong>Price:</strong> $' + new Intl.NumberFormat("en-US").format(vehicle.inv_price) + '</p>'
+    detail += '<p><strong>Mileage:</strong> ' + new Intl.NumberFormat("en-US").format(vehicle.inv_miles) + ' miles</p>'
+    detail += '<p><strong>Description:</strong> ' + vehicle.inv_description + '</p>'
+    detail += '</section>'
+  } else {
+    detail = '<p class="notice">Sorry, that vehicle could not be found.</p>'
+  }
+  return detail
+}
+
+module.exports = Util
