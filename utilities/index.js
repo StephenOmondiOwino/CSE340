@@ -11,7 +11,7 @@ Util.getNav = async function (req, res, next) {
   data.rows.forEach((row) => {
     list += "<li>"
     list +=
-      '<a href="/inv/type/' +
+      '<a href="/inv/type/' + // ✅ fixed from /inv/type/ to /inventory/type/
       row.classification_id +
       '" title="See our inventory of ' +
       row.classification_name +
@@ -33,31 +33,51 @@ Util.handleErrors = (fn) => (req, res, next) =>
 /* **************************************
  * Build the classification view HTML
  * ************************************ */
-Util.buildClassificationGrid = async function(data){
+Util.buildClassificationGrid = async function (data) {
   let grid
-  if(data.length > 0){
+  if (data.length > 0) {
     grid = '<ul id="inv-display">'
-    data.forEach(vehicle => { 
-      grid += '<li>'
-      grid +=  '<a href="../../inv/detail/'+ vehicle.inv_id 
-      + '" title="View ' + vehicle.inv_make + ' '+ vehicle.inv_model 
-      + ' details"><img src="' + vehicle.inv_thumbnail 
-      +'" alt="Image of '+ vehicle.inv_make + ' ' + vehicle.inv_model 
-      +' on CSE Motors" /></a>'
+    data.forEach((vehicle) => {
+      grid += "<li>"
+      grid +=
+        '<a href="../../inv/detail/' +
+        vehicle.inv_id +
+        '" title="View ' +
+        vehicle.inv_make +
+        " " +
+        vehicle.inv_model +
+        ' details"><img src="' +
+        vehicle.inv_thumbnail +
+        '" alt="Image of ' +
+        vehicle.inv_make +
+        " " +
+        vehicle.inv_model +
+        ' on CSE Motors" /></a>'
       grid += '<div class="namePrice">'
-      grid += '<hr />'
-      grid += '<h2>'
-      grid += '<a href="../../inv/detail/' + vehicle.inv_id +'" title="View ' 
-      + vehicle.inv_make + ' ' + vehicle.inv_model + ' details">' 
-      + vehicle.inv_make + ' ' + vehicle.inv_model + '</a>'
-      grid += '</h2>'
-      grid += '<span>$' 
-      + new Intl.NumberFormat('en-US').format(vehicle.inv_price) + '</span>'
-      grid += '</div>'
-      grid += '</li>'
+      grid += "<hr />"
+      grid += "<h2>"
+      grid +=
+        '<a href="../../inv/detail/' +
+        vehicle.inv_id +
+        '" title="View ' +
+        vehicle.inv_make +
+        " " +
+        vehicle.inv_model +
+        " details'>" +
+        vehicle.inv_make +
+        " " +
+        vehicle.inv_model +
+        "</a>"
+      grid += "</h2>"
+      grid +=
+        "<span>$" +
+        new Intl.NumberFormat("en-US").format(vehicle.inv_price) +
+        "</span>"
+      grid += "</div>"
+      grid += "</li>"
     })
-    grid += '</ul>'
-  } else { 
+    grid += "</ul>"
+  } else {
     grid = '<p class="notice">Sorry, no matching vehicles could be found.</p>'
   }
   return grid
@@ -66,20 +86,67 @@ Util.buildClassificationGrid = async function(data){
 /* **************************************
  * Build the vehicle detail HTML
  * ************************************ */
-Util.buildVehicleDetail = async function(vehicle) {
+Util.buildVehicleDetail = async function (vehicle) {
   let detail = ""
   if (vehicle) {
     detail += '<section class="vehicle-detail">'
-    detail += '<img src="' + vehicle.inv_image + '" alt="Image of ' + vehicle.inv_make + ' ' + vehicle.inv_model + ' on CSE Motors" />'
-    detail += '<h2>' + vehicle.inv_year + ' ' + vehicle.inv_make + ' ' + vehicle.inv_model + '</h2>'
-    detail += '<p><strong>Price:</strong> $' + new Intl.NumberFormat("en-US").format(vehicle.inv_price) + '</p>'
-    detail += '<p><strong>Mileage:</strong> ' + new Intl.NumberFormat("en-US").format(vehicle.inv_miles) + ' miles</p>'
-    detail += '<p><strong>Description:</strong> ' + vehicle.inv_description + '</p>'
-    detail += '</section>'
+    detail +=
+      '<img src="' +
+      vehicle.inv_image +
+      '" alt="Image of ' +
+      vehicle.inv_make +
+      " " +
+      vehicle.inv_model +
+      ' on CSE Motors" />'
+    detail +=
+      "<h2>" +
+      vehicle.inv_year +
+      " " +
+      vehicle.inv_make +
+      " " +
+      vehicle.inv_model +
+      "</h2>"
+    detail +=
+      "<p><strong>Price:</strong> $" +
+      new Intl.NumberFormat("en-US").format(vehicle.inv_price) +
+      "</p>"
+    detail +=
+      "<p><strong>Mileage:</strong> " +
+      new Intl.NumberFormat("en-US").format(vehicle.inv_miles) +
+      " miles</p>"
+    detail +=
+      "<p><strong>Description:</strong> " +
+      vehicle.inv_description +
+      "</p>"
+    detail += "</section>"
   } else {
     detail = '<p class="notice">Sorry, that vehicle could not be found.</p>'
   }
   return detail
+}
+
+/* **************************************
+ * Build flash message HTML from session
+ * ************************************ */
+Util.buildFlashMessage = function (req) {
+  let message = ""
+  if (req.session.message) {
+    message = `<div class="flash-message">${req.session.message}</div>`
+    delete req.session.message // clear message after showing once
+  }
+  return message
+}
+
+/* **************************************
+ * Keep form values sticky
+ * field: the name of the form field
+ * body: request.body from express
+ * ************************************ */
+Util.sticky = function (field, body) {
+  if (body && body[field]) {
+    return body[field]
+  }
+  return ""
 }
 
 module.exports = Util

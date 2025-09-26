@@ -1,0 +1,18 @@
+/* Highlight invalid inputs */
+input:required:invalid, input:focus:invalid {
+  border: 2px solid red;
+  background-color: #ffe6e6;
+}
+
+/* Highlight valid inputs */
+input:required:valid {
+  border: 2px solid green;
+  background-color: #e6ffe6;
+}
+
+/* Password rules box */
+.password-rules {
+  font-size: 0.9rem;
+  margin-bottom: 0.5em;
+  color: #555;
+}

@@ -1,0 +1,22 @@
+<form action="/account/login" method="post">
+  <label for="loginEmail">Email:</label>
+  <input type="email" name="account_email" id="loginEmail" required>
+
+  <label for="loginPassword">Password:</label>
+  <div class="password-rules">
+    Passwords must be at least 12 characters and contain at least:
+    <ul>
+      <li>1 number</li>
+      <li>1 uppercase letter</li>
+      <li>1 lowercase letter</li>
+      <li>1 special character</li>
+    </ul>
+  </div>
+  <input type="password" 
+         name="account_password" 
+         id="loginPassword" 
+         required
+         pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$">
+
+  <button type="submit">Login</button>
+</form>
