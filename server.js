@@ -20,20 +20,29 @@ const inventoryRoute = require("./routes/inventoryRoute")
  * Express Setup
  *************************/
 const app = express()
-
 /* ***********************
- * Middleware
+ * Session Middleware
  *************************/
-app.use(session({
-  store: new (require('connect-pg-simple')(session))({
-    createTableIfMissing: true,
-    pool,
-  }),
-  secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
-  name: 'sessionId',
-}))
+const pgSession = require('connect-pg-simple')(session)
+
+app.use(
+  session({
+    store: new pgSession({
+      pool,               // your PostgreSQL pool
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || 'devFallbackSecret123!', // fallback for local/dev
+    resave: false,                  // recommended
+    saveUninitialized: false,       // recommended
+    name: 'sessionId',
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,  // 1 day
+      secure: process.env.NODE_ENV === 'production', // only send over HTTPS in prod
+      sameSite: 'lax',
+    },
+  })
+)
+
 // Express Messages Middleware
 app.use(require('connect-flash')())
 app.use(function (req, res, next) {
