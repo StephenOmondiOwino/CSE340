@@ -10,6 +10,22 @@
     <p><a href="/inv/add-classification">Add New Classification</a></p>
     <p><a href="/inv/add-inventory">Add New Vehicle</a></p>
   </section>
+
+  <section>
+    <h2>Manage Inventory</h2>
+    <p>Use the drop-down menu to choose a classification to see items.</p>
+
+    <!-- classification select list from controller -->
+    <%- classificationSelect %>
+
+    <!-- table will be filled dynamically by JS -->
+    <table id="inventoryDisplay"></table>
+
+    <noscript>JavaScript must be enabled to use this page.</noscript>
+  </section>
 </main>
+
+<!-- attach inventory.js -->
+<script src="/js/inventory.js"></script>
 
 <%- include("../partials/footer") %>

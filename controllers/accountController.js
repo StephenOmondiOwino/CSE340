@@ -1,117 +1,81 @@
-// accountController.js
 const utilities = require("../utilities/")
 const accountModel = require("../models/accountModel")
 const bcrypt = require("bcryptjs")
-
-/* ***************************
- * Deliver Login View
- * ************************** */
-async function buildLogin(req, res, next) {
-  let nav = await utilities.getNav()
-  res.render("account/login", {
-    title: "Login",
-    nav,
-    errors: null,
-    account_email: "",
-  })
-}
-
-/* ***************************
- * Deliver Registration View
- * ************************** */
-async function buildRegister(req, res, next) {
-  let nav = await utilities.getNav()
-  res.render("account/register", {
-    title: "Register",
-    nav,
-    errors: null,
-    account_firstname: "",
-    account_lastname: "",
-    account_email: "",
-  })
-}
-
-/* ***************************
- * Process Registration
- * ************************** */
-async function registerAccount(req, res) {
-  const { account_firstname, account_lastname, account_email, account_password } = req.body
-
-  let hashedPassword
-  try {
-    hashedPassword = await bcrypt.hash(account_password, 10)
-  } catch (error) {
-    res.status(500).send("Error hashing password.")
-    return
-  }
-
-  const regResult = await accountModel.registerAccount(
-    account_firstname,
-    account_lastname,
-    account_email,
-    hashedPassword
-  )
-
-  if (regResult) {
-    let nav = await utilities.getNav()
-    req.flash("notice", `Congratulations, you're registered ${account_firstname}. Please log in.`)
-    res.status(201).render("account/login", {
-      title: "Login",
-      nav,
-      errors: null,
-      account_email: account_email, // sticky email
-    })
-  } else {
-    let nav = await utilities.getNav()
-    req.flash("notice", "Sorry, registration failed.")
-    res.status(501).render("account/register", {
-      title: "Register",
-      nav,
-      errors: null,
-      account_firstname,
-      account_lastname,
-      account_email,
-    })
-  }
-}
+const jwt = require("jsonwebtoken")
 
 /* ***************************
  * Process Login
  * ************************** */
-async function accountLogin(req, res) {
+async function processLogin(req, res) {
   const { account_email, account_password } = req.body
 
   const accountData = await accountModel.getAccountByEmail(account_email)
   if (!accountData) {
     let nav = await utilities.getNav()
     req.flash("notice", "Invalid email or password.")
-    res.status(400).render("account/login", {
+    return res.status(400).render("account/login", {
       title: "Login",
       nav,
       errors: null,
       account_email, // sticky email
     })
-    return
   }
 
   try {
     const match = await bcrypt.compare(account_password, accountData.account_password)
     if (match) {
-      req.flash("notice", `Welcome back, ${accountData.account_firstname}`)
-      res.redirect("/") // redirect to homepage/dashboard
+      // ✅ Create JWT
+      const token = jwt.sign(
+        {
+          account_id: accountData.account_id,
+          account_firstname: accountData.account_firstname,
+          account_email: accountData.account_email,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      )
+
+      // ✅ Store JWT in cookie
+      res.cookie("authToken", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true on production
+        sameSite: "lax",
+      })
+
+      // ✅ Flash message stored in session
+      req.flash("notice", `Welcome back, ${accountData.account_firstname}!`)
+      return res.redirect("/account")
     } else {
       let nav = await utilities.getNav()
       req.flash("notice", "Invalid email or password.")
-      res.status(400).render("account/login", {
+      return res.status(400).render("account/login", {
         title: "Login",
         nav,
         errors: null,
-        account_email, // sticky email
+        account_email,
       })
     }
   } catch (error) {
+    console.error("Login error:", error)
     throw new Error("Access Denied")
   }
 }
 
-module.exports = { buildLogin, buildRegister, registerAccount, accountLogin }
+/* ***************************
+ * Logout
+ * ************************** */
+function logout(req, res) {
+  // ✅ Clear JWT cookie
+  res.clearCookie("authToken")
+
+  // ✅ Destroy session (removes flash + session data)
+  req.session.destroy(() => {
+    req.flash("notice", "You have been logged out.")
+    res.redirect("/account/login")
+  })
+}
+
+module.exports = {
+  processLogin,
+  logout,
+}

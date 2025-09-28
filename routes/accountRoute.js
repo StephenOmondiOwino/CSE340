@@ -1,33 +1,29 @@
-// accountRoute.js
 const express = require("express")
-const router = express.Router()
+const router = new express.Router()
 const accountController = require("../controllers/accountController")
-const regValidate = require("../utilities/accountValidation")
+const { checkAuth } = require("../utilities/auth")
+const utilities = require("../utilities/")
 
-// Default route (login view)
-router.get("/", accountController.buildLogin)
+// login form
+router.get("/login", async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("account/login", { title: "Login", nav })
+})
 
-// Registration view
-router.get("/register", accountController.buildRegister)
+// login process
+router.post("/login", accountController.processLogin)
 
-// Process Registration
-router.post(
-  "/register",
-  regValidate.registrationRules(),
-  regValidate.checkRegData,
-  accountController.registerAccount
-)
+// logout
+router.get("/logout", accountController.logout)
 
-// Login view
-router.get("/login", accountController.buildLogin)
-
-// Process Login
-router.post(
-  "/login",
-  regValidate.loginRules(),
-  regValidate.checkLoginData,
-  accountController.accountLogin
-)
+// protected dashboard
+router.get("/", checkAuth, async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("account/dashboard", {
+    title: "Account Dashboard",
+    nav,
+    user: req.user, // from JWT
+  })
+})
 
 module.exports = router
-

@@ -1,4 +1,5 @@
 const invModel = require("../models/inventory-model")
+const jwt = require("jsonwebtoken")
 const Util = {}
 
 /* ************************
@@ -11,7 +12,7 @@ Util.getNav = async function (req, res, next) {
   data.rows.forEach((row) => {
     list += "<li>"
     list +=
-      '<a href="/inv/type/' + // ✅ fixed from /inv/type/ to /inventory/type/
+      '<a href="/inv/type/' +
       row.classification_id +
       '" title="See our inventory of ' +
       row.classification_name +
@@ -32,7 +33,7 @@ Util.handleErrors = (fn) => (req, res, next) =>
 
 /* **************************************
  * Build the classification view HTML
- * ************************************ */
+ ************************************** */
 Util.buildClassificationGrid = async function (data) {
   let grid
   if (data.length > 0) {
@@ -85,7 +86,7 @@ Util.buildClassificationGrid = async function (data) {
 
 /* **************************************
  * Build the vehicle detail HTML
- * ************************************ */
+ ************************************** */
 Util.buildVehicleDetail = async function (vehicle) {
   let detail = ""
   if (vehicle) {
@@ -127,7 +128,7 @@ Util.buildVehicleDetail = async function (vehicle) {
 
 /* **************************************
  * Build flash message HTML from session
- * ************************************ */
+ ************************************** */
 Util.buildFlashMessage = function (req) {
   let message = ""
   if (req.session.message) {
@@ -139,14 +140,45 @@ Util.buildFlashMessage = function (req) {
 
 /* **************************************
  * Keep form values sticky
- * field: the name of the form field
- * body: request.body from express
- * ************************************ */
+ ************************************** */
 Util.sticky = function (field, body) {
   if (body && body[field]) {
     return body[field]
   }
   return ""
+}
+
+/* ****************************************
+ * Check Login (session-based)
+ **************************************** */
+Util.checkLogin = (req, res, next) => {
+  if (res.locals.loggedin) {
+    next()
+  } else {
+    req.flash("notice", "Please log in.")
+    return res.redirect("/account/login")
+  }
+}
+
+/* ****************************************
+ * Check JWT Token (cookie-based)
+ **************************************** */
+Util.checkJWTToken = (req, res, next) => {
+  const token = req.cookies.authToken
+  if (!token) {
+    return next() // no token → continue without blocking
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      res.clearCookie("authToken")
+      req.flash("notice", "Session expired. Please log in again.")
+      return res.redirect("/account/login")
+    }
+    req.user = user
+    res.locals.loggedin = true
+    next()
+  })
 }
 
 module.exports = Util

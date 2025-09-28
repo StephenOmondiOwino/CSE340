@@ -1,8 +1,3 @@
-/* ******************************************
- * This server.js file is the primary file of the 
- * application. It is used to control the project.
- *******************************************/
-
 /* ***********************
  * Require Statements
  *************************/
@@ -12,55 +7,70 @@ const pool = require("./database/") // your pg pool
 const express = require("express")
 const expressLayouts = require("express-ejs-layouts")
 const env = require("dotenv").config()
-const utilities = require("./utilities/")   // utilities with handleErrors
+const utilities = require("./utilities/")
 const baseController = require("./controllers/baseController")
 const inventoryRoute = require("./routes/inventoryRoute")
+
+// ✅ NEW
+const cookieParser = require("cookie-parser")
 
 /* ***********************
  * Express Setup
  *************************/
 const app = express()
+
+/* ***********************
+ * Cookie Parser
+ *************************/
+app.use(cookieParser())
+
 /* ***********************
  * Session Middleware
  *************************/
-const pgSession = require('connect-pg-simple')(session)
+const pgSession = require("connect-pg-simple")(session)
 
 app.use(
   session({
     store: new pgSession({
-      pool,               // your PostgreSQL pool
+      pool,
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || 'devFallbackSecret123!', // fallback for local/dev
-    resave: false,                  // recommended
-    saveUninitialized: false,       // recommended
-    name: 'sessionId',
+    secret: process.env.SESSION_SECRET || "devFallbackSecret123!",
+    resave: false,
+    saveUninitialized: false,
+    name: "sessionId",
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24,  // 1 day
-      secure: process.env.NODE_ENV === 'production', // only send over HTTPS in prod
-      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
     },
   })
 )
 
 // Express Messages Middleware
-app.use(require('connect-flash')())
+app.use(require("connect-flash")())
 app.use(function (req, res, next) {
-  res.locals.messages = require('express-messages')(req, res)
+  res.locals.messages = require("express-messages")(req, res)
   next()
 })
 
 /* View engine and Template */
 app.set("view engine", "ejs")
 app.use(expressLayouts)
-app.set("layout", "./layouts/layout") // not at views root
+app.set("layout", "./layouts/layout")
 
-// Make "public" folder available for CSS, images, JS
+// Public assets
 app.use(express.static("public"))
 
-// ✅ NEW: Middleware to handle POST form input
+// Middleware for form + JSON
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+/* ***********************
+ * JWT Middleware
+ *************************/
+// ✅ This checks for a valid JWT if present
+app.use(utilities.checkJWTToken)
 
 /* ***********************
  * Routes
@@ -70,10 +80,12 @@ app.get("/", utilities.handleErrors(baseController.buildHome))
 
 // Inventory routes
 app.use("/inv", inventoryRoute)
+
+// Account routes
 app.use("/account", accountRoute)
 
 /* ***********************
- * File Not Found Route - must be last before error handler
+ * File Not Found Route
  *************************/
 app.use(async (req, res, next) => {
   next({ status: 404, message: "Sorry, we appear to have lost that page." })
@@ -81,7 +93,6 @@ app.use(async (req, res, next) => {
 
 /* ***********************
  * Express Error Handler
- * Place after all other middleware
  *************************/
 app.use(async (err, req, res, next) => {
   let nav = await utilities.getNav()
@@ -104,14 +115,10 @@ app.use(async (err, req, res, next) => {
 
 /* ***********************
  * Local Server Information
- * Values from .env (environment) file
  *************************/
 const port = process.env.PORT
 const host = process.env.HOST
 
-/* ***********************
- * Log statement to confirm server operation
- *************************/
 app.listen(port, () => {
   console.log(`app listening on ${host}:${port}`)
 })
