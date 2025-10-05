@@ -105,5 +105,31 @@ invCont.updateInventory = async function (req, res, next) {
   }
 }
 
+/* ***************************
+ *  Build vehicle detail view
+ * ************************** */
+invCont.buildById = async function (req, res, next) {
+  try {
+    const inv_id = parseInt(req.params.inv_id)
+    const data = await invModel.getVehicleById(inv_id)
+    const nav = await utilities.getNav()
+
+    if (data) {
+      res.render("inventory/detail", {
+        title: `${data.inv_make} ${data.inv_model}`,
+        nav,
+        inv: data,
+        errors: null,
+      })
+    } else {
+      next({ status: 404, message: "Vehicle not found" })
+    }
+  } catch (error) {
+    console.error("Error in buildById controller:", error)
+    next(error)
+  }
+}
+
 module.exports = invCont
+
 

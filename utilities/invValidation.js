@@ -78,5 +78,10 @@ validate.checkInventoryData = async (req, res, next) => {
   }
   next()
 }
+validate.newInventoryRules = () => {
+  return validate.inventoryRules()
+}
+validate.checkUpdateData = validate.checkInventoryData
+
 
 module.exports = validate

@@ -3,7 +3,7 @@ const pool = require("../database/")
 /* ***************************
  *  Get all classification data
  * ************************** */
-async function getClassifications(){
+async function getClassifications() {
   return await pool.query(
     "SELECT * FROM public.classification ORDER BY classification_name"
   )
@@ -39,13 +39,29 @@ async function getInventoryById(inv_id) {
        WHERE i.inv_id = $1`,
       [inv_id]
     )
-    return data.rows
+    return data.rows[0]
   } catch (error) {
     console.error("getInventoryById error " + error)
   }
 }
+
+/* ***************************
+ *  Get a vehicle by inv_id (for detail view)
+ * ************************** */
+async function getVehicleById(inv_id) {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM public.inventory WHERE inv_id = $1",
+      [inv_id]
+    )
+    return result.rows[0]
+  } catch (error) {
+    console.error("getVehicleById error " + error)
+  }
+}
+
 /* *******************************
- * Add a new classification
+ *  Add a new classification
  * ***************************** */
 async function addClassification(classification_name) {
   try {
@@ -59,7 +75,7 @@ async function addClassification(classification_name) {
 }
 
 /* *******************************
- * Add new inventory item
+ *  Add new inventory item
  * ***************************** */
 async function addInventory(inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, classification_id) {
   try {
@@ -72,6 +88,7 @@ async function addInventory(inv_make, inv_model, inv_year, inv_description, inv_
     return null
   }
 }
+
 /* ***************************
  *  Update Inventory Data
  * ************************** */
@@ -106,16 +123,19 @@ async function updateInventory(
     ])
     return data.rows[0]
   } catch (error) {
-    console.error("model error: " + error)
+    console.error("updateInventory error: " + error)
   }
 }
 
-
-
+/* ***************************
+ *  Exports
+ * ************************** */
 module.exports = {
   getClassifications,
   getInventoryByClassificationId,
+  getInventoryById,
+  getVehicleById,
   addClassification,
-  addInventory
+  addInventory,
+  updateInventory
 }
-

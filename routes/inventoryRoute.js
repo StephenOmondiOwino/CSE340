@@ -59,10 +59,14 @@ router.get("/test/all", async (req, res) => {
     console.error(err)
     res.status(500).send("Error fetching data")
   }
-  // Return inventory JSON for classification
-router.get("/getInventory/:classification_id", 
+}) // ✅ properly close /test/all route here
+
+// Return inventory JSON for classification
+router.get(
+  "/getInventory/:classification_id",
   utilities.handleErrors(invController.getInventoryJSON)
 )
+
 /* ***********************
  * Route to edit inventory item
  ************************ */
@@ -70,15 +74,16 @@ router.get(
   "/edit/:inv_id",
   utilities.handleErrors(invController.editInventoryView)
 )
+
+// Detail route
+router.get("/detail/:inv_id", utilities.handleErrors(invController.buildById))
+
 // Update inventory route
 router.post(
   "/update/",
   invValidate.newInventoryRules(),
   invValidate.checkUpdateData,
-  invController.updateInventory
+  utilities.handleErrors(invController.updateInventory)
 )
-
-
-})
 
 module.exports = router

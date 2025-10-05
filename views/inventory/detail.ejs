@@ -1,16 +1,30 @@
+
 <%- include('../partials/head') %>
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 
 <main id="content" class="container">
-  <% if (title) { %>
-    <h1><%= title %></h1>
-  <% } %>
+  <% if (inv) { %>
+    <h1><%= inv.inv_make %> <%= inv.inv_model %></h1>
 
-  <!-- detail HTML produced server-side -->
-  <section id="vehicle-detail">
-    <%- detail %>
-  </section>
+    <section id="vehicle-detail" class="vehicle-detail">
+      <img
+        src="<%= inv.inv_image %>"
+        alt="<%= inv.inv_make %> <%= inv.inv_model %>"
+        class="vehicle-image"
+      />
+
+      <div class="vehicle-info">
+        <p><strong>Price:</strong> $<%= inv.inv_price.toLocaleString() %></p>
+        <p><strong>Description:</strong> <%= inv.inv_description %></p>
+        <p><strong>Color:</strong> <%= inv.inv_color %></p>
+        <p><strong>Mileage:</strong> <%= inv.inv_miles.toLocaleString() %> miles</p>
+      </div>
+    </section>
+  <% } else { %>
+    <h2>Vehicle not found</h2>
+    <p>Sorry, the vehicle you’re looking for doesn’t exist or has been removed.</p>
+  <% } %>
 </main>
 
 <%- include('../partials/footer') %>

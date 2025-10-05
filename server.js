@@ -10,6 +10,10 @@ const env = require("dotenv").config()
 const utilities = require("./utilities/")
 const baseController = require("./controllers/baseController")
 const inventoryRoute = require("./routes/inventoryRoute")
+const reviewRoute = require("./routes/reviewRoute")
+
+
+
 
 // ✅ NEW
 const cookieParser = require("cookie-parser")
@@ -83,6 +87,8 @@ app.use("/inv", inventoryRoute)
 
 // Account routes
 app.use("/account", accountRoute)
+// Review routes
+app.use("/reviews", reviewRoute)
 
 /* ***********************
  * File Not Found Route
