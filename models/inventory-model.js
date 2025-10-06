@@ -139,3 +139,29 @@ module.exports = {
   addInventory,
   updateInventory
 }
+// ======================
+// Search cars by keyword
+// ======================
+const searchCars = async (searchTerm) => {
+  try {
+    const db = await pool.connect()
+    const sql = `
+      SELECT * FROM public.inventory
+      WHERE inv_make ILIKE $1
+         OR inv_model ILIKE $1
+         OR inv_description ILIKE $1
+    `
+    const result = await db.query(sql, [`%${searchTerm}%`])
+    db.release()
+    return result.rows
+  } catch (error) {
+    console.error('Database error during search:', error)
+    throw error
+  }
+}
+
+module.exports = { 
+  // keep your existing exports here
+  ...module.exports,
+  searchCars
+}

@@ -40,7 +40,7 @@ invCont.editInventoryView = async function (req, res, next) {
     inv_price: itemData.inv_price,
     inv_miles: itemData.inv_miles,
     inv_color: itemData.inv_color,
-    classification_id: itemData.classification_id
+    classification_id: itemData.classification_id,
   })
 }
 
@@ -130,6 +130,48 @@ invCont.buildById = async function (req, res, next) {
   }
 }
 
+/* ****************************************
+ *  Search cars controller
+ * *************************************** */
+invCont.searchCars = async function (req, res, next) {
+  try {
+    const searchTerm = req.query.q?.trim()
+
+    if (!searchTerm || searchTerm.length < 2) {
+      let nav = await utilities.getNav()
+      return res.render("inventory/search-results", {
+        title: "Search Results",
+        message: "Please enter at least 2 characters to search.",
+        nav,
+        cars: [],
+      })
+    }
+
+    const cars = await invModel.searchCars(searchTerm)
+    let nav = await utilities.getNav()
+
+    if (cars.length === 0) {
+      return res.render("inventory/search-results", {
+        title: "Search Results",
+        message: `No results found for "${searchTerm}".`,
+        nav,
+        cars: [],
+      })
+    }
+
+    res.render("inventory/search-results", {
+      title: `Search Results for "${searchTerm}"`,
+      nav,
+      cars,
+      message: null,
+    })
+  } catch (error) {
+    console.error("Search controller error:", error)
+    next(error)
+  }
+}
+
 module.exports = invCont
+
 
 

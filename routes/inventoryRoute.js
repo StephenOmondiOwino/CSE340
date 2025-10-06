@@ -74,6 +74,9 @@ router.get(
   "/edit/:inv_id",
   utilities.handleErrors(invController.editInventoryView)
 )
+// Search route
+router.get("/search", invController.searchCars)
+
 
 // Detail route
 router.get("/detail/:inv_id", utilities.handleErrors(invController.buildById))

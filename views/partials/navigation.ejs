@@ -1,3 +1,20 @@
 <nav>
   <%- nav %>
 </nav>
+<nav>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="/inv">Inventory</a></li>
+    <li><a href="/account">Account</a></li>
+  </ul>
+
+  <form action="/inv/search" method="get" class="search-bar">
+    <input
+      type="text"
+      name="q"
+      placeholder="Search vehicles..."
+      required
+    />
+    <button type="submit">Search</button>
+  </form>
+</nav>

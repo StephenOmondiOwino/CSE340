@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+
+<main>
+  <h1><%= title %></h1>
+
+  <% if (results && results.length > 0) { %>
+    <div class="vehicle-grid">
+      <% results.forEach(vehicle => { %>
+        <div class="vehicle-card">
+          <img src="<%= vehicle.inv_thumbnail %>" alt="<%= vehicle.inv_make %> <%= vehicle.inv_model %>">
+          <h2><%= vehicle.inv_make %> <%= vehicle.inv_model %></h2>
+          <p><strong>Price:</strong> $<%= vehicle.inv_price.toLocaleString() %></p>
+          <p><a href="/inv/detail/<%= vehicle.inv_id %>">View Details</a></p>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="no-results">
+      <img src="/images/no-results.png" alt="No results found" class="no-results-img">
+      <p>No vehicles match your search. Try another keyword.</p>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>
